@@ -1,0 +1,209 @@
+class PongGame {
+    static PongGame instance;
+    field Bat bat1, bat2;  // bat1: inferior, bat2: superior
+    field Ball ball;
+    field int exit;
+    field int score1, score2;
+    
+    constructor PongGame new() {
+        let instance = this;
+        let exit = 0;
+        let score1 = 0;
+        let score2 = 0;
+        
+        // criar as barras: bat1 (inferior), bat2 (superior)
+        let bat1 = Bat.new(230, 249, 30, 1);  // (dentro da tela)
+        let bat2 = Bat.new(230, 1, 30, 2);
+        
+        // criar a bola
+        let ball = Ball.new(250, 125);
+        
+        // desenhar a tela inicial
+        do draw();
+        
+        return this;
+    }
+    
+    method void dispose() {
+        do bat1.dispose();
+        do bat2.dispose();
+        do ball.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+    
+    method void run() {
+        var char key;
+        
+        // mostrar tela de boas-vindas
+        do showWelcomeScreen();
+        
+        while (~exit) {
+           
+           
+            // verificar entrada do teclado
+            let key = Keyboard.keyPressed();
+            if (~(key = 0)) {
+                // Jogador 1 (inferior): setas esquerda/direita
+                if (key = 130) { do bat1.setDirection(1); }  // esquerda
+                if (key = 132) { do bat1.setDirection(2); }  // direita
+                
+                // Jogador 2 (superior): teclas 'a' e 'd'
+                if (key = 97)  { do bat2.setDirection(1); }  // esquerda (a)
+                if (key = 100) { do bat2.setDirection(2); }  // direita (d)
+            } else {
+                // parar o movimento quando nenhuma tecla está pressionada
+                do bat1.setDirection(0);
+                do bat2.setDirection(0);
+            }
+            
+            // atualizar posições
+            do bat1.move();
+            do bat2.move();
+            do ball.move();
+            
+            // verificar colisões
+            do checkCollisions();
+            
+            // redesenhar (antes de verificar game over)
+            do draw();
+            
+            // verificar condições de derrota
+            if (ball.getBottom() > 254) {      // bola passou completamente da barra inferior
+                do showGameOver(1);
+                let exit = 1;
+            }
+            if (ball.getTop() < 1) {        // bola passou completamente da barra superior
+                do showGameOver(2);
+                let exit = 1;
+            }
+            
+            // delay para controle de velocidade
+            do Sys.wait(10);
+        }
+        
+        return;
+    }
+    
+    method void draw() {
+        do Screen.clearScreen();
+        
+        // desenhar barras
+        do bat1.draw();
+        do bat2.draw();
+        
+        // desenhar bola
+        do ball.draw();
+        
+        return;
+    }
+    
+    method void checkCollisions() {
+        var int ballLeft, ballRight, ballTop, ballBottom;
+        var int bat1Left, bat1Right, bat1Top, bat1Bottom;
+        var int bat2Left, bat2Right, bat2Top, bat2Bottom;
+        
+        // obter limites da bola
+        let ballLeft = ball.getLeft();
+        let ballRight = ball.getRight();
+        let ballTop = ball.getTop();
+        let ballBottom = ball.getBottom();
+        
+        // obter limites da barra inferior (bat1)
+        let bat1Left = bat1.getLeft();
+        let bat1Right = bat1.getRight();
+        let bat1Top = bat1.getTop();
+        let bat1Bottom = bat1.getBottom();
+        
+        // obter limites da barra superior (bat2)
+        let bat2Left = bat2.getLeft();
+        let bat2Right = bat2.getRight();
+        let bat2Top = bat2.getTop();
+        let bat2Bottom = bat2.getBottom();
+        
+        // verificar colisão com as paredes laterais
+        if (ballLeft < 1) { do ball.bounce(3); }         // bateu na esquerda
+        if (ballRight > 511) { do ball.bounce(4); }      // bateu na direita
+        
+        // verificar colisão com a barra inferior (bat1)
+        if (~(ballBottom < bat1Top) & ~(ballTop > bat1Bottom) & 
+            ~(ballRight < bat1Left) & ~(ballLeft > bat1Right)) {
+            do ball.bounce(1);  // bateu na barra inferior
+        }
+        
+        // verificar colisão com a barra superior (bat2)
+        if (~(ballBottom < bat2Top) & ~(ballTop > bat2Bottom) & 
+            ~(ballRight < bat2Left) & ~(ballLeft > bat2Right)) {
+            do ball.bounce(2);  // bateu na barra superior
+        }
+        
+        return;
+    }
+    
+    method void showGameOver(int player) {
+        do Screen.clearScreen();
+        do Screen.setColor(true);
+        
+        // exibir mensagem de game over no centro da tela
+        if (player = 1) {
+            // Jogador 1 perdeu
+            do Output.moveCursor(10, 15);
+            do Output.printString("Game Over - Jogador 1 perdeu");
+            do Output.moveCursor(12, 20);
+            do Output.printString("Pressione qualquer tecla");
+        } else {
+            // Jogador 2 perdeu
+            do Output.moveCursor(10, 15);
+            do Output.printString("Game Over - Jogador 2 perdeu");
+            do Output.moveCursor(12, 20);
+            do Output.printString("Pressione qualquer tecla");
+        }
+        
+        // aguardar até que uma tecla seja pressionada
+        while (Keyboard.keyPressed() = 0) {
+            do Sys.wait(50);
+        }
+
+        // aguardar até que a tecla seja solta
+        while (~(Keyboard.keyPressed() = 0)) {
+            do Sys.wait(50);
+        }
+        
+        return;
+    }
+    
+    method void showWelcomeScreen() {
+        do Screen.clearScreen();
+        do Screen.setColor(true);
+        
+        // título
+        do Output.moveCursor(5, 25);
+        do Output.printString("PONG GAME - Projeto Final");
+        
+        // instruções
+        do Output.moveCursor(8, 6);
+        do Output.printString("Jogador 1 (inferior): Jogue com as setas esquerda/direita");
+        do Output.moveCursor(10, 6);
+        do Output.printString("Jogador 2 (superior): Jogue com as teclas A e D");
+        
+        do Output.moveCursor(16, 15);
+        do Output.printString("Pressione qualquer tecla para iniciar");
+        
+        // aguardar até que uma tecla seja pressionada
+        while (Keyboard.keyPressed() = 0) {
+            do Sys.wait(50);
+        }
+        
+        // aguardar até que a tecla seja solta
+        while (~(Keyboard.keyPressed() = 0)) {
+            do Sys.wait(50);
+        }
+        
+        return;
+    }
+    
+    function PongGame newInstance() {
+        if (instance = null) { let instance = PongGame.new(); }
+        return instance;
+    }
+}

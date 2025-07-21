@@ -1,0 +1,81 @@
+class Ball {
+    field int x, y;           // posição atual
+    field int length;         // tamanho da bola (lado do quadrado)
+    field int dx, dy;         // direção do movimento (1 ou -1)
+    field int left, right;    // limites esquerdo e direito
+    field int top, bottom;    // limites superior e inferior
+    
+    constructor Ball new(int Ax, int Ay) {
+        let x = Ax;
+        let y = Ay;
+        let length = 6;
+        
+        // garantir que as coordenadas estejam dentro dos limites da tela
+        if (x < 0) { let x = 0; }
+        if (x > 511 - length) { let x = 511 - length; }
+        if (y < 0) { let y = 0; }
+        if (y > 255 - length) { let y = 255 - length; }
+        
+        let left = x;
+        let right = x + length;
+        let top = y;
+        let bottom = y + length;
+        let dx = 1;
+        let dy = 1;
+        return this;
+    }
+    
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+    
+    method void draw() {
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + length, y + length);
+        return;
+    }
+    
+    method int getLeft() { return left; }
+    method int getRight() { return right; }
+    method int getTop() { return top; }
+    method int getBottom() { return bottom; }
+    method int getX() { return x; }
+    method int getY() { return y; }
+    
+    method void move() {
+        // apagar a bola na posição atual
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + length, y + length);
+        
+        // atualizar posição
+        let x = x + dx;
+        let y = y + dy;
+        
+        // garantir que a bola não saia dos limites da tela
+        if (x < 0) { let x = 0; }
+        if (x > 511 - length) { let x = 511 - length; }
+        if (y < 0) { let y = 0; }
+        if (y > 255 - length) { let y = 255 - length; }
+        
+        // atualizar limites
+        let left = x;
+        let right = x + length;
+        let top = y;
+        let bottom = y + length;
+        
+        // desenhar na nova posição
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + length, y + length);
+        return;
+    }
+    
+    // direction: 1=barra inferior, 2=barra superior, 3=parede esquerda, 4=parede direita
+    method void bounce(int direction) {
+        if (direction = 1) { let dy = -1; }      // bateu na barra inferior (vai para cima)
+        if (direction = 2) { let dy = 1; }       // bateu na barra superior (vai para baixo)
+        if (direction = 3) { let dx = 1; }       // bateu na parede esquerda
+        if (direction = 4) { let dx = -1; }      // bateu na parede direita
+        return;
+    }
+}

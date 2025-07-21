@@ -1,0 +1,65 @@
+class Bat {
+    field int x, y;           // posição atual (canto superior esquerdo)
+    field int width, height;  // dimensões
+    field int player;         // 1=inferior, 2=superior
+    field int direction;      // 0=parado, 1=esquerda, 2=direita
+    
+    constructor Bat new(int Ax, int Ay, int Awidth, int Aplayer) {
+        let x = Ax;
+        let y = Ay;
+        let width = Awidth;
+        let height = 5;
+        let player = Aplayer;
+        let direction = 0;
+
+        // coordenadas, dentro dos limites da tela
+        if (x < 0) { let x = 0; }
+        if (x > 511 - width) { let x = 511 - width; }
+        if (y < 0) { let y = 0; }
+        if (y > 255 - height) { let y = 255 - height; }
+        
+        return this;
+    }
+    
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+    
+    method void draw() {
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + width, y + height);
+        return;
+    }
+    
+    method int getLeft() { return x; }
+    method int getRight() { return x + width; }
+    method int getTop() { return y; }
+    method int getBottom() { return y + height; }
+    
+    method void setDirection(int Adir) {
+        let direction = Adir;
+        return;
+    }
+    
+    method void move() {
+        // apagar a barra na posição atual
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + width, y + height);
+        
+        // mover de acordo com a direção
+        if (direction = 1) {  // esquerda
+            let x = x - 4;
+            if (x < 1) { let x = 1; }
+        }
+        if (direction = 2) {  // direita
+            let x = x + 4;
+            if (x > 511 - width) { let x = 511 - width; }
+        }
+        
+        // desenhar na nova posição
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + width, y + height);
+        return;
+    }
+}

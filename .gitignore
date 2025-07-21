@@ -1,0 +1,23 @@
+# Arquivos compilados do Jack
+*.vm
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Arquivos de backup
+*.bak
+*~
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
